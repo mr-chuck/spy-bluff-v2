@@ -14,6 +14,7 @@ interface VotingPhaseProps {
 export default function VotingPhase({ room, playerId, onVote, onEndGame, onLeave }: VotingPhaseProps) {
   const [voting, setVoting] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
 
   const me = room.players.find((p) => p.id === playerId)!;
@@ -22,14 +23,22 @@ export default function VotingPhase({ room, playerId, onVote, onEndGame, onLeave
   const votedCount = alivePlayers.filter((p) => p.hasVoted).length;
   const alreadyVoted = me?.hasVoted;
 
-  const handleVote = async (targetId: string) => {
-    setVoting(true);
+  const handleSelect = (targetId: string) => {
+    if (voting) return;
     setSelected(targetId);
+    setConfirmed(false);
     setError("");
-    try { await onVote(targetId); } catch (err) {
+  };
+
+  const handleConfirmVote = async () => {
+    if (!selected || voting) return;
+    setVoting(true);
+    setConfirmed(true);
+    setError("");
+    try { await onVote(selected); } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to vote");
       setVoting(false);
-      setSelected(null);
+      setConfirmed(false);
     }
   };
 
@@ -74,7 +83,7 @@ export default function VotingPhase({ room, playerId, onVote, onEndGame, onLeave
         <div style={{
           fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 32,
           color: 'var(--ink)', lineHeight: 1.05, letterSpacing: '-0.02em',
-        }}>Who&apos;s the imposter?</div>
+        }}>Who&apos;s the impostor?</div>
         <div style={{
           fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 15,
           color: 'var(--ink-soft)', paddingTop: 10, lineHeight: 1.4,
@@ -127,10 +136,11 @@ export default function VotingPhase({ room, playerId, onVote, onEndGame, onLeave
               }
               const isSelected = selected === p.id;
               return (
-                <button key={p.id} onClick={() => !voting && handleVote(p.id)} style={{
+                <button key={p.id} onClick={() => handleSelect(p.id)} style={{
                   background: isSelected ? 'var(--ink)' : 'var(--card)',
                   color: isSelected ? 'var(--paper)' : 'var(--ink)',
-                  border: '1.5px solid var(--ink)', padding: 12, cursor: voting ? 'not-allowed' : 'pointer',
+                  border: `1.5px solid ${isSelected ? 'var(--accent)' : 'var(--ink)'}`,
+                  padding: 12, cursor: voting ? 'not-allowed' : 'pointer',
                   textAlign: 'center', boxShadow: isSelected ? '3px 3px 0 var(--accent)' : 'none',
                   transition: 'all 0.12s',
                 }}>
@@ -153,17 +163,36 @@ export default function VotingPhase({ room, playerId, onVote, onEndGame, onLeave
                   )}
                   {isSelected && (
                     <div className="mono-label" style={{ paddingTop: 4, fontSize: 9 }}>
-                      &#10003; YOUR PICK
+                      SELECTED
                     </div>
                   )}
                 </button>
               );
             })}
           </div>
+          {/* Confirm vote button — only shown after selecting a suspect */}
+          {selected && selected !== 'abstain' && (
+            <button
+              className="ed-btn ed-btn-accent ed-btn-lg"
+              style={{ width: '100%', marginTop: 10 }}
+              onClick={handleConfirmVote}
+              disabled={voting}
+            >
+              {voting ? 'Submitting...' : `Confirm Vote → ${alivePlayers.find(p => p.id === selected)?.name}`}
+            </button>
+          )}
           <button
             className="ed-btn ed-btn-outline"
             style={{ width: '100%', marginTop: 10 }}
-            onClick={() => !voting && handleVote("abstain")}
+            onClick={async () => {
+              if (voting) return;
+              setVoting(true);
+              setError("");
+              try { await onVote("abstain"); } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to abstain");
+                setVoting(false);
+              }
+            }}
             disabled={voting}
           >
             ABSTAIN (SKIP VOTE)

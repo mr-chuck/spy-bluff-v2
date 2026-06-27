@@ -36,7 +36,7 @@ export default function ResultsScreen({
               fontSize: 32, lineHeight: 0.95, fontWeight: 500, color: 'var(--ink)',
               paddingTop: 4,
             }}>
-              {villagersWon ? "The Town Prevails" : impostorWon ? "The Imposters Win" : "Game Over"}
+              {villagersWon ? "The Town Prevails" : impostorWon ? "The Impostors Win" : "Game Over"}
             </div>
             <div className="mono-label" style={{
               paddingTop: 8, borderTop: '0.5px solid var(--rule)', marginTop: 8,
@@ -52,7 +52,7 @@ export default function ResultsScreen({
               borderColor: villagersWon ? 'var(--success)' : 'var(--accent)',
               color: villagersWon ? 'var(--success)' : 'var(--accent)',
             }}>
-              {villagersWon ? "TOWN WINS" : impostorWon ? "IMPOSTERS WIN" : "GAME OVER"}
+              {villagersWon ? "TOWN WINS" : impostorWon ? "IMPOSTORS WIN" : "GAME OVER"}
             </div>
             {room.winReason && (
               <div style={{
@@ -113,7 +113,7 @@ export default function ResultsScreen({
                       color: caught ? 'var(--success)' : 'var(--accent)',
                       transform: 'rotate(-3deg)',
                     }}>
-                      {caught ? '&#10003; CAUGHT' : '&#10007; SURVIVED'}
+                      {caught ? '✓ CAUGHT' : '✗ SURVIVED'}
                     </div>
                   </div>
                 );

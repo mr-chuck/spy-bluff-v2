@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { GameMode } from "@/lib/types";
 
@@ -18,9 +18,12 @@ export default function Home() {
   const [impostorCount, setImpostorCount] = useState(1);
   const maxImpostors = Math.floor(expectedPlayers / 3);
   const adjustedImpostorCount = Math.min(impostorCount, maxImpostors);
-  if (adjustedImpostorCount !== impostorCount) {
-    setImpostorCount(adjustedImpostorCount);
-  }
+
+  useEffect(() => {
+    if (adjustedImpostorCount !== impostorCount) {
+      setImpostorCount(adjustedImpostorCount);
+    }
+  }, [adjustedImpostorCount, impostorCount]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
